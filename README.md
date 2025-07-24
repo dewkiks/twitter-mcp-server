@@ -1,294 +1,102 @@
 # Twitter MCP Server
 
-A Model Context Protocol (MCP) server that provides Twitter functionality using the `twikit` library. This server allows AI assistants to interact with Twitter through a standardized protocol with **cookie-based authentication** - using `ct0` and `auth_token` cookies in config.json file.
+A Model Context Protocol (MCP) server for Twitter integration using cookie-based authentication. Allows AI assistants to interact with Twitter through a standardized protocol.
 
-## Features
+## ⚠️ Disclaimer
 
-- **Cookie Authentication**: Authenticating by adding `ct0` and `auth_token` in the config 
-- **Timeline Access**: Get tweets from your timeline
-- **User Information**: Retrieve user profiles and statistics
-- **Tweet Search**: Search for tweets with specific queries
-- **Tweet Management**: Post, like, and retweet tweets
-- **User Tweets**: Get tweets from specific users
-- **Direct Messaging**: Send DMs, get DM history, react to messages, and delete messages
-- **Authentication Testing**: Test cookies before use
-- **Tweet Operations**: Post tweets, like/unlike tweets, retweet/delete retweets, bookmark tweets
-- **Tweet Retrieval**: Get tweets by ID, search tweets, get user timelines, get tweet replies
-- **User Operations**: Follow/unfollow users, get user information, search users
-- **Trending Topics**: Get trending topics across different categories (trending, news, sports, entertainment, for-you)
+This uses an **unofficial Twitter API** via the `twikit` library. Not endorsed by Twitter/X and may break without notice. Use for educational/experimental purposes only. Account restrictions possible.
 
-## Disclaimer
+## Quick Setup
 
-**This project utilizes an unofficial API to interact with X (formerly Twitter) through the `twikit` library. The methods employed for authentication and data retrieval are not officially endorsed by X/Twitter and may be subject to change or discontinuation without notice.**
-
-**This tool is intended for educational and experimental purposes only. Users should be aware of the potential risks associated with using unofficial APIs, including but not limited to account restrictions or suspension. The developers of this project are not responsible for any misuse or consequences arising from the use of this tool.**
-
-## Installation
-
-1. Clone this repository:
+1. **Install**
 ```bash
 git clone <repository-url>
 cd twitter-mcp
-```
-
-2. Install dependencies:
-```bash
 pip install -r requirements.txt
 ```
 
-3. Run the server:
-```bash
-python server.py
-```
+2. **Get Twitter Cookies**
+   - Open Twitter/X in browser and login
+   - Open Developer Tools (F12) → Application/Storage → Cookies → twitter.com
+   - Copy these values:
+     - `ct0` (CSRF token)
+     - `auth_token` (Authentication token)
 
-## Authentication
-
-#### Usage with Claude Desktop
-
-Add this to your claude_desktop_config.json:
-```bash
+3. **Configure Claude Desktop**
+Add to your `claude_desktop_config.json`:
+```json
 {
   "mcpServers": {
     "twitter": {
       "command": "python",
       "args": ["./path/to/server.py"],
       "env": {
-        "TWITTER_CT0": "YOUR_TWITTER_CT0",
-        "TWITTER_AUTH_TOKEN": "YOUR_AUTH_TOKEN"
+        "TWITTER_CT0": "your_ct0_here",
+        "TWITTER_AUTH_TOKEN": "your_auth_token_here"
       }
     }
   }
-} 
-```
-#### Usage with mcp-use library
-https://github.com/mcp-use/mcp-use
-
-Add this to your config:
-```bash
-twitter_mcp = StdioServerParameters(
-            command="python",
-            args=["./services/v2/twitter_server.py"],
-            env={
-                "TWITTER_CT0": "",
-                "TWITTER_AUTH_TOKEN": ""
-                }
-        )
+}
 ```
 
-### Getting Twitter Cookies
+## Main Features
 
-Here's how to obtain the Cookies:
+- **Tweet Management**: Post, like, retweet, search tweets
+- **User Operations**: Get profiles, follow/unfollow users
+- **Timeline Access**: Get your timeline and user timelines
+- **Direct Messages**: Send DMs, get history, react to messages
+- **Trending Topics**: Get trending topics by category
 
-1. Open your browser and go to Twitter/X
-2. Log in to your account
-3. Open Developer Tools (F12)
-4. Go to Application/Storage → Cookies → twitter.com (or x.com)
-5. Find and copy these cookie values:
-   - `ct0` - CSRF token cookie
-   - `auth_token` - Authentication token cookie
+## Key Tools
 
-Both cookies are required for all operations.
+### Tweet Operations
+- `tweet` - Post a new tweet
+- `like_tweet` - Like a tweet by ID
+- `retweet` - Retweet by ID
+- `search_tweets` - Search for tweets
 
-## Usage
+### User Operations  
+- `get_user_info` - Get user profile info
+- `get_timeline` - Get your timeline
 
-### Available Tools
+### Direct Messages
+- `send_dm` - Send direct message to username
+- `get_dm_history` - Get DM history with user
+- `add_reaction_to_message` - React with emoji
+- `delete_dm` - Delete a message
 
+### Other
+- `get_tweet_replies` - Get replies to a tweet
+- `get_trends` - Get trending topics
 
-#### 1. Tweet
-Post a new tweet:
+## Example Usage
+
 ```json
+// Post a tweet
 {
   "tool": "tweet",
   "arguments": {
-    "text": "Hello from MCP! 🚀",
+    "text": "Hello from MCP! 🚀"
   }
 }
-```
 
-#### 2. Get User Info
-Get information about a Twitter user:
-```json
+// Search tweets
 {
-  "tool": "get_user_info",
-  "arguments": {
-    "username": "elonmusk",
-  }
-}
-```
-
-#### 3. Search Tweets
-Search for tweets:
-```json
-{
-  "tool": "search_tweets",
+  "tool": "search_tweets", 
   "arguments": {
     "query": "artificial intelligence",
-    "count": 10,
+    "count": 10
   }
 }
-```
 
-#### 4. Get Timeline
-Get tweets from your timeline:
-```json
+// Send DM
 {
-  "tool": "get_timeline",
-  "arguments": {
-    "count": 20,
-  }
-}
-```
-
-#### 5. Like Tweet
-Like a tweet by ID:
-```json
-{
-  "tool": "like_tweet",
-  "arguments": {
-    "tweet_id": "1234567890123456789",
-  }
-}
-```
-
-#### 6. Retweet
-Retweet a tweet by ID:
-```json
-{
-  "tool": "retweet",
-  "arguments": {
-    "tweet_id": "1234567890123456789",
-  }
-}
-```
-
-#### 7. Send Direct Message
-Send a direct message to a user.
-
-**Parameters:**
-- `recipient_username` (string): The username (without @) to send the message to (automatically converted to user_id internally)
-- `text` (string): The message content
-
-```json
-{
-  "name": "send_dm",
+  "tool": "send_dm",
   "arguments": {
     "recipient_username": "username",
-    "text": "Hello from MCP!",
+    "text": "Hello!"
   }
 }
 ```
 
-#### 8. Get DM History
-Get direct message history with a specific user.
-
-**Parameters:**
-- `recipient_username` (string): The username (without @) to get DM history with (automatically converted to user_id internally)
-- `count` (integer, optional): Number of messages to retrieve (default: 20, max: 100)
-
-```json
-{
-  "name": "get_dm_history", 
-  "arguments": {
-    "recipient_username": "username",
-    "count": 50,
-    "ct0": "your_ct0_token",
-    "auth_token": "your_auth_token"
-  }
-}
-```
-
-#### 9. React to Direct Message
-Add an emoji reaction to a direct message.
-
-**Parameters:**
-- `message_id` (string): The ID of the message to react to
-- `emoji` (string): The emoji to add (e.g., "👍", "❤️", "😀")
-- `conversation_id` (string): The conversation ID containing the message
-
-```json
-{
-  "name": "add_reaction_to_message",
-  "arguments": {
-    "message_id": "message_id_here", 
-    "emoji": "👍",
-    "conversation_id": "conversation_id_here",
-  }
-}
-```
-
-#### 10. Delete Direct Message
-Delete a direct message:
-```json
-{
-  "tool": "delete_dm",
-  "arguments": {
-    "message_id": "1234567890123456789",
-  }
-}
-```
-
-#### 11. Get Tweet Replies
-Get replies to a specific tweet.
-
-**Parameters:**
-- `tweet_id` (string): The ID of the tweet to get replies for
-- `count` (integer, optional): Number of replies to retrieve (default: 20)
-
-```json
-{
-  "name": "get_tweet_replies",
-  "arguments": {
-    "tweet_id": "1234567890",
-    "count": 10,
-  }
-}
-```
-
-#### 12. Get Trends
-Get trending topics on Twitter.
-
-**Parameters:**
-- `category` (string, optional): The category of trends to retrieve (default: "trending")
-  - Options: `"trending"`, `"for-you"`, `"news"`, `"sports"`, `"entertainment"`
-- `count` (integer, optional): Number of trends to retrieve (default: 20, max: 50)
-
-```json
-{
-  "name": "get_trends",
-  "arguments": {
-    "category": "trending",
-    "count": 20,
-  }
-}
-```
-
-**Examples:**
-```json
-// Get general trending topics
-{
-  "name": "get_trends",
-  "arguments": {
-  }
-}
-
-// Get sports trends
-{
-  "name": "get_trends", 
-  "arguments": {
-    "category": "sports",
-    "count": 10,
-  }
-}
-
-// Get personalized trends
-{
-  "name": "get_trends",
-  "arguments": {
-    "category": "for-you",
-  }
-}
-```
-
-### Available Resources
-
-Resources can be accessed but require the `TWITTER_CT0`
+That's it! All tools require the cookies to be set in your environment variables.
