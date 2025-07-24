@@ -1,0 +1,24 @@
+# Smithery configuration file: https://smithery.ai/docs/build/project-config
+
+startCommand:
+  type: stdio
+  commandFunction:
+    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
+    |-
+    (config) => ({ command: 'python3', args: ['-u', 'server.py'], env: { TWITTER_CT0: config.twitterCt0, TWITTER_AUTH_TOKEN: config.twitterAuthToken } })
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - twitterCt0
+      - twitterAuthToken
+    properties:
+      twitterCt0:
+        type: string
+        description: CSRF token from Twitter cookies (ct0)
+      twitterAuthToken:
+        type: string
+        description: Authentication token from Twitter cookies (auth_token)
+  exampleConfig:
+    twitterCt0: sample_ct0_value
+    twitterAuthToken: sample_auth_token
