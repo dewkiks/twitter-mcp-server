@@ -1,5 +1,7 @@
 # Twitter MCP Server
 
+[![smithery badge](https://smithery.ai/badge/@dewkiks/twitter-mcp-server)](https://smithery.ai/server/@dewkiks/twitter-mcp-server)
+
 A Model Context Protocol (MCP) server for Twitter integration using cookie-based authentication. Allows AI assistants to interact with Twitter through a standardized protocol.
 
 ## ⚠️ Disclaimer
@@ -8,6 +10,15 @@ This uses an **unofficial Twitter API** via the `twikit` library. Not endorsed b
 
 ## Quick Setup
 
+### Installing via Smithery
+
+To install Twitter MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@dewkiks/twitter-mcp-server):
+
+```bash
+npx -y @smithery/cli install @dewkiks/twitter-mcp-server --client claude
+```
+
+### Manual Installation
 1. **Install**
 ```bash
 git clone <repository-url>
