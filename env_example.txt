@@ -5,15 +5,8 @@
 # Twitter Authentication Cookies
 # You can get these cookies from your browser's developer tools
 # when logged into Twitter/X → Application/Storage → Cookies
+
 TWITTER_CT0=your_ct0_cookie_here
 TWITTER_AUTH_TOKEN=your_auth_token_cookie_here
 
 # Note: These environment variables are only used as fallback for resources
-# For tools, the LLM model provides ct0 and auth_token directly in each call
-
-# Optional: Twitter API credentials (if using API v2 in the future)
-# TWITTER_API_KEY=your_api_key
-# TWITTER_API_SECRET=your_api_secret
-# TWITTER_ACCESS_TOKEN=your_access_token
-# TWITTER_ACCESS_TOKEN_SECRET=your_access_token_secret
-# TWITTER_BEARER_TOKEN=your_bearer_token 
