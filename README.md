@@ -71,32 +71,20 @@ Add to your `claude_desktop_config.json`:
 
 ## Example Usage
 
-```json
-// Post a tweet
-{
-  "tool": "tweet",
-  "arguments": {
-    "text": "Hello from MCP! 🚀"
-  }
-}
+```
+Post a tweet about AI developments
 
-// Search tweets
-{
-  "tool": "search_tweets", 
-  "arguments": {
-    "query": "artificial intelligence",
-    "count": 10
-  }
-}
+Search for tweets about "artificial intelligence" and show me the top 10
 
-// Send DM
-{
-  "tool": "send_dm",
-  "arguments": {
-    "recipient_username": "username",
-    "text": "Hello!"
-  }
-}
+Send a DM to @username saying "Hello from MCP!"
+
+Get my timeline with the latest 20 tweets
+
+Like the tweet with ID 1234567890123456789
+
+Get trending topics in sports
+
+Show me replies to tweet ID 9876543210987654321
 ```
 
 That's it! All tools require the cookies to be set in your environment variables.
