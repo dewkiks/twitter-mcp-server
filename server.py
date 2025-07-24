@@ -39,29 +39,35 @@ class TwitterMCPServer:
 
     async def initialize_client(self):
         """Initialize Twitter client with environment credentials"""
-        # Get credentials from environment (set by MCP config)
-        ct0 = os.getenv("TWITTER_CT0")
-        auth_token = os.getenv("TWITTER_AUTH_TOKEN")
-        
-        if not ct0 or not auth_token:
-            raise ValueError("TWITTER_CT0 and TWITTER_AUTH_TOKEN environment variables are required")
-        
-        # Create and authenticate client once
-        self.client = Client('en-US')
-        cookies = {
-            'ct0': ct0,
-            'auth_token': auth_token
-        }
-        self.client.set_cookies(cookies)
-        
-        # Test authentication
         try:
-            user_id = await self.client.user_id()
-            if not user_id:
-                raise ValueError("Authentication failed")
-            print(f"Twitter client authenticated successfully")
+            # Get credentials from environment (set by MCP config)
+            ct0 = os.getenv("TWITTER_CT0")
+            auth_token = os.getenv("TWITTER_AUTH_TOKEN")
+            
+            if not ct0 or not auth_token:
+                raise ValueError("TWITTER_CT0 and TWITTER_AUTH_TOKEN environment variables are required")
+            
+            # Create and authenticate client once
+            self.client = Client('en-US')
+            cookies = {
+                'ct0': ct0,
+                'auth_token': auth_token
+            }
+            self.client.set_cookies(cookies)
+            
+            # Test authentication with timeout
+            try:
+                user_id = await asyncio.wait_for(self.client.user_id(), timeout=10.0)
+                if not user_id:
+                    raise ValueError("Authentication failed")
+                print(f"Twitter client authenticated successfully")
+            except asyncio.TimeoutError:
+                raise ValueError("Authentication timed out")
+            except Exception as e:
+                raise ValueError(f"Authentication failed: {str(e)}")
         except Exception as e:
-            raise ValueError(f"Authentication failed: {str(e)}")
+            print(f"Client initialization failed: {e}")
+            raise
 
     def setup_handlers(self):
         """Set up MCP server handlers"""
@@ -377,9 +383,7 @@ class TwitterMCPServer:
         async def handle_call_tool(name: str, arguments: dict) -> list[types.TextContent]:
             """Handle tool calls"""
             try:
-                # Extract cookies from arguments
-                if not self.client:
-                    await self.initialize_client()
+                await asyncio.wait_for(self.initialize_client(), timeout=15.0)
             
                 if name == "tweet":
                     result = await self._post_tweet(arguments["text"])
@@ -448,9 +452,11 @@ class TwitterMCPServer:
                 else:
                     raise ValueError(f"Unknown tool: {name}")
 
+            except asyncio.TimeoutError:
+                return [types.TextContent(type="text", text="Error: Client initialization timed out")]
             except Exception as e:
-                return [types.TextContent(type="text", text=f"Error: {str(e)}")]
-
+                return [types.TextContent(type="text", text=f"Error: Failed to initialize client: {str(e)}")]
+            
     async def _post_tweet(self, text: str) -> Dict[str, Any]:
         """Post a tweet"""
         tweet = await self.client.create_tweet(text=text)
@@ -693,8 +699,14 @@ class TwitterMCPServer:
 
 async def main():
     """Main entry point"""
-    server = TwitterMCPServer()
-    await server.run()
+    print("Starting Twitter MCP Server...")
+    try:
+        server = TwitterMCPServer()
+        print("Server initialized, waiting for connections...")
+        await server.run()
+    except Exception as e:
+        print(f"Server failed to start: {e}")
+        raise
 
 if __name__ == "__main__":
     asyncio.run(main())
