@@ -2,9 +2,10 @@
   "mcpServers": {
     "twitter": {
       "command": "python",
-      "args": ["server.py"],
+      "args": ["./path/to/server.py"],
       "env": {
-        "TWITTER_AUTH_TOKEN": "${TWITTER_AUTH_TOKEN}"
+        "TWITTER_CT0": "",
+        "TWITTER_AUTH_TOKEN": ""
       }
     }
   }

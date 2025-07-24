@@ -37,6 +37,32 @@ class TwitterMCPServer:
         self.authenticated_clients = {}  # Cache for authenticated clients
         self.setup_handlers()
 
+    async def initialize_client(self):
+        """Initialize Twitter client with environment credentials"""
+        # Get credentials from environment (set by MCP config)
+        ct0 = os.getenv("TWITTER_CT0")
+        auth_token = os.getenv("TWITTER_AUTH_TOKEN")
+        
+        if not ct0 or not auth_token:
+            raise ValueError("TWITTER_CT0 and TWITTER_AUTH_TOKEN environment variables are required")
+        
+        # Create and authenticate client once
+        self.client = Client('en-US')
+        cookies = {
+            'ct0': ct0,
+            'auth_token': auth_token
+        }
+        self.client.set_cookies(cookies)
+        
+        # Test authentication
+        try:
+            user_id = await self.client.user_id()
+            if not user_id:
+                raise ValueError("Authentication failed")
+            print(f"Twitter client authenticated successfully")
+        except Exception as e:
+            raise ValueError(f"Authentication failed: {str(e)}")
+
     def setup_handlers(self):
         """Set up MCP server handlers"""
         
@@ -124,16 +150,8 @@ class TwitterMCPServer:
                                 "description": "The text content of the tweet",
                                 "maxLength": 280
                             },
-                            "ct0": {
-                                "type": "string",
-                                "description": "Twitter ct0 cookie (required)"
-                            },
-                            "auth_token": {
-                                "type": "string",
-                                "description": "Twitter auth_token cookie (required)"
-                            }
                         },
-                        "required": ["text", "ct0", "auth_token"]
+                        "required": ["text"]
                     }
                 ),
                 Tool(
@@ -146,16 +164,8 @@ class TwitterMCPServer:
                                 "type": "string",
                                 "description": "The username (without @) to get info for"
                             },
-                            "ct0": {
-                                "type": "string",
-                                "description": "Twitter ct0 cookie (required)"
-                            },
-                            "auth_token": {
-                                "type": "string",
-                                "description": "Twitter auth_token cookie (required)"
-                            }
                         },
-                        "required": ["username", "ct0", "auth_token"]
+                        "required": ["username"]
                     }
                 ),
                 Tool(
@@ -181,16 +191,8 @@ class TwitterMCPServer:
                                 "enum": ["Top", "Latest"],
                                 "default": "Latest"
                             },
-                            "ct0": {
-                                "type": "string",
-                                "description": "Twitter ct0 cookie (required)"
-                            },
-                            "auth_token": {
-                                "type": "string",
-                                "description": "Twitter auth_token cookie (required)"
-                            }
                         },
-                        "required": ["query", "ct0", "auth_token"]
+                        "required": ["query"]
                     }
                 ),
                 Tool(
@@ -206,16 +208,7 @@ class TwitterMCPServer:
                                 "minimum": 1,
                                 "maximum": 100
                             },
-                            "ct0": {
-                                "type": "string",
-                                "description": "Twitter ct0 cookie (required)"
-                            },
-                            "auth_token": {
-                                "type": "string",
-                                "description": "Twitter auth_token cookie (required)"
-                            }
                         },
-                        "required": ["ct0", "auth_token"]
                     }
                 ),
                 Tool(
@@ -231,16 +224,7 @@ class TwitterMCPServer:
                                 "minimum": 1,
                                 "maximum": 100
                             },
-                            "ct0": {
-                                "type": "string",
-                                "description": "Twitter ct0 cookie (required)"
-                            },
-                            "auth_token": {
-                                "type": "string",
-                                "description": "Twitter auth_token cookie (required)"
-                            }
                         },
-                        "required": ["ct0", "auth_token"]
                     }
                 ),
                 Tool(
@@ -253,16 +237,8 @@ class TwitterMCPServer:
                                 "type": "string",
                                 "description": "The ID of the tweet to like"
                             },
-                            "ct0": {
-                                "type": "string",
-                                "description": "Twitter ct0 cookie (required)"
-                            },
-                            "auth_token": {
-                                "type": "string",
-                                "description": "Twitter auth_token cookie (required)"
-                            }
                         },
-                        "required": ["tweet_id", "ct0", "auth_token"]
+                        "required": ["tweet_id"]
                     }
                 ),
                 Tool(
@@ -275,34 +251,8 @@ class TwitterMCPServer:
                                 "type": "string",
                                 "description": "The ID of the tweet to retweet"
                             },
-                            "ct0": {
-                                "type": "string",
-                                "description": "Twitter ct0 cookie (required)"
-                            },
-                            "auth_token": {
-                                "type": "string",
-                                "description": "Twitter auth_token cookie (required)"
-                            }
                         },
-                        "required": ["tweet_id", "ct0", "auth_token"]
-                    }
-                ),
-                Tool(
-                    name="authenticate",
-                    description="Test authentication with provided cookies and return user info",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {
-                            "ct0": {
-                                "type": "string",
-                                "description": "Twitter ct0 cookie to test"
-                            },
-                            "auth_token": {
-                                "type": "string",
-                                "description": "Twitter auth_token cookie to test"
-                            }
-                        },
-                        "required": ["ct0", "auth_token"]
+                        "required": ["tweet_id"]
                     }
                 ),
                 Tool(
@@ -319,16 +269,8 @@ class TwitterMCPServer:
                                 "type": "string",
                                 "description": "The message text to send"
                             },
-                            "ct0": {
-                                "type": "string",
-                                "description": "Twitter ct0 cookie (required)"
-                            },
-                            "auth_token": {
-                                "type": "string",
-                                "description": "Twitter auth_token cookie (required)"
-                            }
                         },
-                        "required": ["recipient_username", "text", "ct0", "auth_token"]
+                        "required": ["recipient_username", "text"]
                     }
                 ),
                 Tool(
@@ -348,16 +290,8 @@ class TwitterMCPServer:
                                 "minimum": 1,
                                 "maximum": 100
                             },
-                            "ct0": {
-                                "type": "string",
-                                "description": "Twitter ct0 cookie (required)"
-                            },
-                            "auth_token": {
-                                "type": "string",
-                                "description": "Twitter auth_token cookie (required)"
-                            }
                         },
-                        "required": ["recipient_username", "ct0", "auth_token"]
+                        "required": ["recipient_username"]
                     }
                 ),
                 Tool(
@@ -378,16 +312,8 @@ class TwitterMCPServer:
                                 "type": "string",
                                 "description": "The conversation ID"
                             },
-                            "ct0": {
-                                "type": "string",
-                                "description": "Twitter ct0 cookie (required)"
-                            },
-                            "auth_token": {
-                                "type": "string",
-                                "description": "Twitter auth_token cookie (required)"
-                            }
                         },
-                        "required": ["message_id", "emoji", "conversation_id", "ct0", "auth_token"]
+                        "required": ["message_id", "emoji", "conversation_id"]
                     }
                 ),
                 Tool(
@@ -400,16 +326,8 @@ class TwitterMCPServer:
                                 "type": "string",
                                 "description": "The ID of the message to delete"
                             },
-                            "ct0": {
-                                "type": "string",
-                                "description": "Twitter ct0 cookie (required)"
-                            },
-                            "auth_token": {
-                                "type": "string",
-                                "description": "Twitter auth_token cookie (required)"
-                            }
                         },
-                        "required": ["message_id", "ct0", "auth_token"]
+                        "required": ["message_id"]
                     }
                 ),
                 Tool(
@@ -427,16 +345,8 @@ class TwitterMCPServer:
                                 "description": "Number of replies to retrieve (default: 20)",
                                 "default": 20
                             },
-                            "ct0": {
-                                "type": "string",
-                                "description": "Twitter ct0 cookie (required)"
-                            },
-                            "auth_token": {
-                                "type": "string",
-                                "description": "Twitter auth_token cookie (required)"
-                            }
                         },
-                        "required": ["tweet_id", "ct0", "auth_token"]
+                        "required": ["tweet_id"]
                     }
                 ),
                 Tool(
@@ -458,16 +368,7 @@ class TwitterMCPServer:
                                 "minimum": 1,
                                 "maximum": 50
                             },
-                            "ct0": {
-                                "type": "string",
-                                "description": "Twitter ct0 cookie (required)"
-                            },
-                            "auth_token": {
-                                "type": "string",
-                                "description": "Twitter auth_token cookie (required)"
-                            }
                         },
-                        "required": ["ct0", "auth_token"]
                     }
                 )
             ]
@@ -477,24 +378,15 @@ class TwitterMCPServer:
             """Handle tool calls"""
             try:
                 # Extract cookies from arguments
-                ct0 = arguments.get("ct0")
-                auth_token = arguments.get("auth_token")
-                if not ct0 or not auth_token:
-                    return [types.TextContent(type="text", text="Error: Both ct0 and auth_token cookies are required for all operations")]
-
-                # Get authenticated client
-                client = await self._get_authenticated_client(ct0, auth_token)
-                
-                if name == "authenticate":
-                    result = await self._test_authentication(client)
-                    return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
-                
-                elif name == "tweet":
-                    result = await self._post_tweet(client, arguments["text"])
+                if not self.client:
+                    await self.initialize_client()
+            
+                if name == "tweet":
+                    result = await self._post_tweet(arguments["text"])
                     return [types.TextContent(type="text", text=f"Tweet posted successfully: {json.dumps(result, indent=2)}")]
                 
                 elif name == "get_user_info":
-                    result = await self._get_user_info(client, arguments["username"])
+                    result = await self._get_user_info(arguments["username"])
                     return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
                 
                 elif name == "search_tweets":
@@ -504,53 +396,53 @@ class TwitterMCPServer:
                     if product not in ("Top", "Latest"):
                         product = "Latest"
                     
-                    result = await self._search_tweets(client, arguments["query"], count, product)
+                    result = await self._search_tweets(arguments["query"], count, product)
                     return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
                 
                 elif name == "get_timeline":
                     count = arguments.get("count", 20)
-                    result = await self._get_timeline(client, count)
+                    result = await self._get_timeline(count)
                     return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
                 
                 elif name == "get_latest_timeline":
                     count = arguments.get("count", 20)
-                    result = await self._get_latest_timeline(client, count)
+                    result = await self._get_latest_timeline( count)
                     return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
                 
                 elif name == "like_tweet":
-                    result = await self._like_tweet(client, arguments["tweet_id"])
+                    result = await self._like_tweet( arguments["tweet_id"])
                     return [types.TextContent(type="text", text=f"Tweet liked successfully: {json.dumps(result, indent=2)}")]
                 
                 elif name == "retweet":
-                    result = await self._retweet(client, arguments["tweet_id"])
+                    result = await self._retweet(arguments["tweet_id"])
                     return [types.TextContent(type="text", text=f"Tweet retweeted successfully: {json.dumps(result, indent=2)}")]
                 
                 elif name == "send_dm":
-                    result = await self._send_dm(client, arguments["recipient_username"], arguments["text"])
+                    result = await self._send_dm(arguments["recipient_username"], arguments["text"])
                     return [types.TextContent(type="text", text=f"DM sent successfully: {json.dumps(result, indent=2)}")]
                 
                 elif name == "get_dm_history":
                     count = arguments.get("count", 20)
-                    result = await self._get_dm_history(client, arguments["recipient_username"], count)
+                    result = await self._get_dm_history(arguments["recipient_username"], count)
                     return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
                 
                 elif name == "add_reaction_to_message":
-                    result = await self._add_reaction_to_message(client, arguments["message_id"], arguments["emoji"], arguments["conversation_id"])
+                    result = await self._add_reaction_to_message(arguments["message_id"], arguments["emoji"], arguments["conversation_id"])
                     return [types.TextContent(type="text", text=f"Reaction added successfully: {json.dumps(result, indent=2)}")]
                 
                 elif name == "delete_dm":
-                    result = await self._delete_dm(client, arguments["message_id"])
+                    result = await self._delete_dm(arguments["message_id"])
                     return [types.TextContent(type="text", text=f"DM deleted successfully: {json.dumps(result, indent=2)}")]
                 
                 elif name == "get_tweet_replies":
                     count = arguments.get("count", 20)
-                    result = await self._get_tweet_replies(client, arguments["tweet_id"], count)
+                    result = await self._get_tweet_replies(arguments["tweet_id"], count)
                     return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
                 
                 elif name == "get_trends":
                     category = arguments.get("category", "trending")
                     count = arguments.get("count", 20)
-                    result = await self._get_trends(client, category, count)
+                    result = await self._get_trends(category, count)
                     return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
                 
                 else:
@@ -559,59 +451,9 @@ class TwitterMCPServer:
             except Exception as e:
                 return [types.TextContent(type="text", text=f"Error: {str(e)}")]
 
-    async def _get_authenticated_client(self, ct0: str, auth_token: str) -> Client:
-        """Get or create an authenticated client for the given cookies"""
-        # Use ct0 as cache key since it's shorter and unique per session
-        cache_key = ct0
-        
-        # Check if we already have an authenticated client for these cookies
-        if cache_key in self.authenticated_clients:
-            return self.authenticated_clients[cache_key]
-        
-        # Create new client and authenticate
-        client = Client('en-US')
-        
-        # Set the cookies directly
-        cookies = {
-            'ct0': ct0,
-            'auth_token': auth_token
-        }
-        client.set_cookies(cookies)
-        
-        # Test authentication by getting user info
-        try:
-            # Use user_id() to test authentication instead of get_me()
-            user_id = await client.user_id()
-            if not user_id:
-                raise ValueError("Failed to get user ID")
-        except Exception as e:
-            raise ValueError(f"Authentication failed with provided cookies: {str(e)}")
-        
-        # Cache the authenticated client
-        self.authenticated_clients[cache_key] = client
-        return client
-
-    async def _test_authentication(self, client: Client) -> Dict[str, Any]:
-        """Test authentication and return user info"""
-        # Get user ID first, then use it to get user details
-        user_id = await client.user_id()
-        user = await client.user(user_id)
-        return {
-            "authenticated": True,
-            "user": {
-                "id": user.id,
-                "username": user.screen_name,
-                "name": user.name,
-                "followers_count": user.followers_count,
-                "following_count": user.following_count,
-                "tweet_count": user.statuses_count,
-                "verified": user.verified
-            }
-        }
-
-    async def _post_tweet(self, client: Client, text: str) -> Dict[str, Any]:
+    async def _post_tweet(self, text: str) -> Dict[str, Any]:
         """Post a tweet"""
-        tweet = await client.create_tweet(text=text)
+        tweet = await self.client.create_tweet(text=text)
         return {
             "id": tweet.id,
             "text": tweet.text,
@@ -619,9 +461,9 @@ class TwitterMCPServer:
             "author": tweet.user.screen_name
         }
 
-    async def _get_user_info(self, client: Client, username: str) -> Dict[str, Any]:
+    async def _get_user_info(self, username: str) -> Dict[str, Any]:
         """Get user information"""
-        user = await client.get_user_by_screen_name(username)
+        user = await self.client.get_user_by_screen_name(username)
         return {
             "id": user.id,
             "username": user.screen_name,
@@ -634,9 +476,9 @@ class TwitterMCPServer:
             "created_at": str(user.created_at)
         }
 
-    async def _search_tweets(self, client: Client, query: str, count: int = 20, product: str = "Latest") -> List[Dict[str, Any]]:
+    async def _search_tweets(self, query: str, count: int = 20, product: str = "Latest") -> List[Dict[str, Any]]:
         """Search for tweets"""
-        tweets = await client.search_tweet(query, product=product, count=count)
+        tweets = await self.client.search_tweet(query, product=product, count=count)
         return [
             {
                 "id": tweet.id,
@@ -651,10 +493,10 @@ class TwitterMCPServer:
             for tweet in tweets
         ]
 
-    async def _get_timeline(self, client: Client, count: int = 20) -> List[Dict[str, Any]]:
+    async def _get_timeline(self, count: int = 20) -> List[Dict[str, Any]]:
         """Get timeline tweets"""
         # Use get_timeline() instead of get_home_timeline()
-        tweets = await client.get_timeline(count=count)
+        tweets = await self.client.get_timeline(count=count)
         return [
             {
                 "id": tweet.id,
@@ -669,10 +511,10 @@ class TwitterMCPServer:
             for tweet in tweets
         ]
 
-    async def _get_user_tweets(self, client: Client, username: str, count: int = 20) -> List[Dict[str, Any]]:
+    async def _get_user_tweets(self, username: str, count: int = 20) -> List[Dict[str, Any]]:
         """Get tweets from a specific user"""
-        user = await client.get_user_by_screen_name(username)
-        tweets = await client.get_user_tweets(user.id, tweet_type='Tweets', count=count)
+        user = await self.client.get_user_by_screen_name(username)
+        tweets = await self.client.get_user_tweets(user.id, tweet_type='Tweets', count=count)
         return [
             {
                 "id": tweet.id,
@@ -687,20 +529,20 @@ class TwitterMCPServer:
             for tweet in tweets
         ]
 
-    async def _like_tweet(self, client: Client, tweet_id: str) -> Dict[str, Any]:
+    async def _like_tweet(self, tweet_id: str) -> Dict[str, Any]:
         """Like a tweet"""
-        result = await client.favorite_tweet(tweet_id)
+        result = await self.client.favorite_tweet(tweet_id)
         return {"success": True, "tweet_id": tweet_id}
 
-    async def _retweet(self, client: Client, tweet_id: str) -> Dict[str, Any]:
+    async def _retweet(self, tweet_id: str) -> Dict[str, Any]:
         """Retweet a tweet"""
-        result = await client.retweet(tweet_id)
+        result = await self.client.retweet(tweet_id)
         return {"success": True, "tweet_id": tweet_id}
 
-    async def _get_latest_timeline(self, client: Client, count: int = 20) -> List[Dict[str, Any]]:
+    async def _get_latest_timeline(self, count: int = 20) -> List[Dict[str, Any]]:
         """Get latest timeline tweets"""
         # Use get_latest_timeline() instead of get_home_timeline()
-        tweets = await client.get_latest_timeline(count=count)
+        tweets = await self.client.get_latest_timeline(count=count)
         return [
             {
                 "id": tweet.id,
@@ -715,13 +557,13 @@ class TwitterMCPServer:
             for tweet in tweets
         ]
 
-    async def _send_dm(self, client: Client, recipient_username: str, text: str) -> Dict[str, Any]:
+    async def _send_dm(self, recipient_username: str, text: str) -> Dict[str, Any]:
         """Send a direct message to a user"""
         # First get the user_id from the username
-        user = await client.get_user_by_screen_name(recipient_username)
+        user = await self.client.get_user_by_screen_name(recipient_username)
         user_id = user.id
         
-        result = await client.send_dm(user_id, text)
+        result = await self.client.send_dm(user_id, text)
         return {
             "success": True,
             "recipient_username": recipient_username,
@@ -731,13 +573,13 @@ class TwitterMCPServer:
             "created_at": str(result.time)
         }
 
-    async def _get_dm_history(self, client: Client, recipient_username: str, count: int = 20) -> List[Dict[str, Any]]:
+    async def _get_dm_history(self, recipient_username: str, count: int = 20) -> List[Dict[str, Any]]:
         """Get direct message history with a user"""
         # First get the user_id from the username
-        user = await client.get_user_by_screen_name(recipient_username)
+        user = await self.client.get_user_by_screen_name(recipient_username)
         user_id = user.id
         
-        result = await client.get_dm_history(user_id)
+        result = await self.client.get_dm_history(user_id)
         messages = []
         for i, message in enumerate(result):
             if i >= count:  # Limit to requested count
@@ -752,9 +594,9 @@ class TwitterMCPServer:
             })
         return messages
 
-    async def _add_reaction_to_message(self, client: Client, message_id: str, emoji: str, conversation_id: str) -> Dict[str, Any]:
+    async def _add_reaction_to_message(self, message_id: str, emoji: str, conversation_id: str) -> Dict[str, Any]:
         """Add a reaction (emoji) to a direct message"""
-        result = await client.add_reaction_to_message(message_id, conversation_id, emoji)
+        result = await self.client.add_reaction_to_message(message_id, conversation_id, emoji)
         return {
             "success": True,
             "message_id": message_id,
@@ -762,19 +604,19 @@ class TwitterMCPServer:
             "conversation_id": conversation_id
         }
 
-    async def _delete_dm(self, client: Client, message_id: str) -> Dict[str, Any]:
+    async def _delete_dm(self, message_id: str) -> Dict[str, Any]:
         """Delete a direct message"""
-        result = await client.delete_dm(message_id)
+        result = await self.client.delete_dm(message_id)
         return {
             "success": True,
             "message_id": message_id
         }
 
-    async def _get_tweet_replies(self, client: Client, tweet_id: str, count: int = 20) -> List[Dict[str, Any]]:
+    async def _get_tweet_replies(self, tweet_id: str, count: int = 20) -> List[Dict[str, Any]]:
         """Get replies to a specific tweet"""
         try:
             # Get the tweet by ID, which should include replies
-            tweet = await client.get_tweet_by_id(tweet_id)
+            tweet = await self.client.get_tweet_by_id(tweet_id)
             
             if not tweet:
                 return {"error": "Tweet not found"}
@@ -817,9 +659,9 @@ class TwitterMCPServer:
         except Exception as e:
             return {"error": f"Failed to get tweet replies: {str(e)}"}
 
-    async def _get_trends(self, client: Client, category: str, count: int) -> List[Dict[str, Any]]:
+    async def _get_trends(self, category: str, count: int) -> List[Dict[str, Any]]:
         """Get trending topics on Twitter"""
-        trends = await client.get_trends(category, count)
+        trends = await self.client.get_trends(category, count)
         return [
             {
                 "name": trend.name,

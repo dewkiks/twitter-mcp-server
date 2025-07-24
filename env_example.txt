@@ -1,5 +1,7 @@
 # Copy this file to .env and fill in your Twitter cookies (optional - used only for resources)
 
+#NOT NECESSARY IF USING CONFIG ENV
+
 # Twitter Authentication Cookies
 # You can get these cookies from your browser's developer tools
 # when logged into Twitter/X → Application/Storage → Cookies
