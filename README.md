@@ -1,11 +1,10 @@
 # Twitter MCP Server
 
-A Model Context Protocol (MCP) server that provides Twitter functionality using the `twikit` library. This server allows AI assistants to interact with Twitter through a standardized protocol with **cookie-based authentication** - the LLM model provides `ct0` and `auth_token` cookies directly in tool calls.
+A Model Context Protocol (MCP) server that provides Twitter functionality using the `twikit` library. This server allows AI assistants to interact with Twitter through a standardized protocol with **cookie-based authentication** - using `ct0` and `auth_token` cookies in config.json file.
 
 ## Features
 
-- **Cookie Authentication**: LLM model provides `ct0` and `auth_token` cookies directly in tool calls
-- **Session Caching**: Automatically caches authenticated sessions for efficiency  
+- **Cookie Authentication**: Authenticating by adding `ct0` and `auth_token` in the config 
 - **Timeline Access**: Get tweets from your timeline
 - **User Information**: Retrieve user profiles and statistics
 - **Tweet Search**: Search for tweets with specific queries
@@ -44,11 +43,41 @@ python server.py
 
 ## Authentication
 
-The server expects the LLM model to provide Twitter cookies directly in each tool call via the `ct0` and `auth_token` parameters. No pre-configuration is required!
+#### Usage with Claude Desktop
+
+Add this to your claude_desktop_config.json:
+```bash
+{
+  "mcpServers": {
+    "twitter": {
+      "command": "python",
+      "args": ["./path/to/server.py"],
+      "env": {
+        "TWITTER_CT0": "YOUR_TWITTER_CT0",
+        "TWITTER_AUTH_TOKEN": "YOUR_AUTH_TOKEN"
+      }
+    }
+  }
+} 
+```
+#### Usage with mcp-use library
+https://github.com/mcp-use/mcp-use
+
+Add this to your config:
+```bash
+twitter_mcp = StdioServerParameters(
+            command="python",
+            args=["./services/v2/twitter_server.py"],
+            env={
+                "TWITTER_CT0": "",
+                "TWITTER_AUTH_TOKEN": ""
+                }
+        )
+```
 
 ### Getting Twitter Cookies
 
-The LLM model will need to provide both Twitter cookies. Here's how to obtain them:
+Here's how to obtain the Cookies:
 
 1. Open your browser and go to Twitter/X
 2. Log in to your account
@@ -64,45 +93,30 @@ Both cookies are required for all operations.
 
 ### Available Tools
 
-#### 1. Authenticate
-Test authentication with cookies:
-```json
-{
-  "tool": "authenticate",
-  "arguments": {
-    "ct0": "your_ct0_cookie_here",
-    "auth_token": "your_auth_token_cookie_here"
-  }
-}
-```
 
-#### 2. Tweet
+#### 1. Tweet
 Post a new tweet:
 ```json
 {
   "tool": "tweet",
   "arguments": {
     "text": "Hello from MCP! 🚀",
-    "ct0": "your_ct0_cookie_here",
-    "auth_token": "your_auth_token_cookie_here"
   }
 }
 ```
 
-#### 3. Get User Info
+#### 2. Get User Info
 Get information about a Twitter user:
 ```json
 {
   "tool": "get_user_info",
   "arguments": {
     "username": "elonmusk",
-    "ct0": "your_ct0_cookie_here",
-    "auth_token": "your_auth_token_cookie_here"
   }
 }
 ```
 
-#### 4. Search Tweets
+#### 3. Search Tweets
 Search for tweets:
 ```json
 {
@@ -110,59 +124,49 @@ Search for tweets:
   "arguments": {
     "query": "artificial intelligence",
     "count": 10,
-    "ct0": "your_ct0_cookie_here",
-    "auth_token": "your_auth_token_cookie_here"
   }
 }
 ```
 
-#### 5. Get Timeline
+#### 4. Get Timeline
 Get tweets from your timeline:
 ```json
 {
   "tool": "get_timeline",
   "arguments": {
     "count": 20,
-    "ct0": "your_ct0_cookie_here",
-    "auth_token": "your_auth_token_cookie_here"
   }
 }
 ```
 
-#### 6. Like Tweet
+#### 5. Like Tweet
 Like a tweet by ID:
 ```json
 {
   "tool": "like_tweet",
   "arguments": {
     "tweet_id": "1234567890123456789",
-    "ct0": "your_ct0_cookie_here",
-    "auth_token": "your_auth_token_cookie_here"
   }
 }
 ```
 
-#### 7. Retweet
+#### 6. Retweet
 Retweet a tweet by ID:
 ```json
 {
   "tool": "retweet",
   "arguments": {
     "tweet_id": "1234567890123456789",
-    "ct0": "your_ct0_cookie_here",
-    "auth_token": "your_auth_token_cookie_here"
   }
 }
 ```
 
-#### 8. Send Direct Message
+#### 7. Send Direct Message
 Send a direct message to a user.
 
 **Parameters:**
 - `recipient_username` (string): The username (without @) to send the message to (automatically converted to user_id internally)
 - `text` (string): The message content
-- `ct0` (string): Twitter ct0 cookie
-- `auth_token` (string): Twitter auth_token cookie
 
 ```json
 {
@@ -170,20 +174,16 @@ Send a direct message to a user.
   "arguments": {
     "recipient_username": "username",
     "text": "Hello from MCP!",
-    "ct0": "your_ct0_token",
-    "auth_token": "your_auth_token"
   }
 }
 ```
 
-#### 9. Get DM History
+#### 8. Get DM History
 Get direct message history with a specific user.
 
 **Parameters:**
 - `recipient_username` (string): The username (without @) to get DM history with (automatically converted to user_id internally)
 - `count` (integer, optional): Number of messages to retrieve (default: 20, max: 100)
-- `ct0` (string): Twitter ct0 cookie  
-- `auth_token` (string): Twitter auth_token cookie
 
 ```json
 {
@@ -197,15 +197,13 @@ Get direct message history with a specific user.
 }
 ```
 
-#### 10. React to Direct Message
+#### 9. React to Direct Message
 Add an emoji reaction to a direct message.
 
 **Parameters:**
 - `message_id` (string): The ID of the message to react to
 - `emoji` (string): The emoji to add (e.g., "👍", "❤️", "😀")
 - `conversation_id` (string): The conversation ID containing the message
-- `ct0` (string): Twitter ct0 cookie
-- `auth_token` (string): Twitter auth_token cookie
 
 ```json
 {
@@ -214,33 +212,27 @@ Add an emoji reaction to a direct message.
     "message_id": "message_id_here", 
     "emoji": "👍",
     "conversation_id": "conversation_id_here",
-    "ct0": "your_ct0_token",
-    "auth_token": "your_auth_token"
   }
 }
 ```
 
-#### 11. Delete Direct Message
+#### 10. Delete Direct Message
 Delete a direct message:
 ```json
 {
   "tool": "delete_dm",
   "arguments": {
     "message_id": "1234567890123456789",
-    "ct0": "your_ct0_cookie_here",
-    "auth_token": "your_auth_token_cookie_here"
   }
 }
 ```
 
-#### **get_tweet_replies**
+#### 11. Get Tweet Replies
 Get replies to a specific tweet.
 
 **Parameters:**
 - `tweet_id` (string): The ID of the tweet to get replies for
 - `count` (integer, optional): Number of replies to retrieve (default: 20)
-- `ct0` (string): Twitter ct0 cookie
-- `auth_token` (string): Twitter auth_token cookie
 
 ```json
 {
@@ -248,21 +240,17 @@ Get replies to a specific tweet.
   "arguments": {
     "tweet_id": "1234567890",
     "count": 10,
-    "ct0": "your_ct0_token",
-    "auth_token": "your_auth_token"
   }
 }
 ```
 
-#### **get_trends**
+#### 12. Get Trends
 Get trending topics on Twitter.
 
 **Parameters:**
 - `category` (string, optional): The category of trends to retrieve (default: "trending")
   - Options: `"trending"`, `"for-you"`, `"news"`, `"sports"`, `"entertainment"`
 - `count` (integer, optional): Number of trends to retrieve (default: 20, max: 50)
-- `ct0` (string): Twitter ct0 cookie
-- `auth_token` (string): Twitter auth_token cookie
 
 ```json
 {
@@ -270,8 +258,6 @@ Get trending topics on Twitter.
   "arguments": {
     "category": "trending",
     "count": 20,
-    "ct0": "your_ct0_token",
-    "auth_token": "your_auth_token"
   }
 }
 ```
@@ -282,8 +268,6 @@ Get trending topics on Twitter.
 {
   "name": "get_trends",
   "arguments": {
-    "ct0": "your_ct0_token",
-    "auth_token": "your_auth_token"
   }
 }
 
@@ -293,8 +277,6 @@ Get trending topics on Twitter.
   "arguments": {
     "category": "sports",
     "count": 10,
-    "ct0": "your_ct0_token",
-    "auth_token": "your_auth_token"
   }
 }
 
@@ -303,8 +285,6 @@ Get trending topics on Twitter.
   "name": "get_trends",
   "arguments": {
     "category": "for-you",
-    "ct0": "your_ct0_token", 
-    "auth_token": "your_auth_token"
   }
 }
 ```
