@@ -39,7 +39,7 @@ Add to your `claude_desktop_config.json`:
 {
   "mcpServers": {
     "twitter": {
-      "command": "python",
+      "command": "./path/to/python.exe",
       "args": ["./path/to/server.py"],
       "env": {
         "TWITTER_CT0": "your_ct0_here",
